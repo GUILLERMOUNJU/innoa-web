@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>INNOA — Arquitecto de Trayectorias Pedagógicas IA</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Exo+2:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root { 
+      --primary: #7c4dff; 
+      --secondary: #00e5ff; 
+      --dark: #050a18; 
+      --pane: rgba(15, 23, 42, 0.8);
+      --glass: rgba(255, 255, 255, 0.03); 
+      --border: rgba(255, 255, 255, 0.1); 
+      --accent: #a3529c;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Exo 2', sans-serif; color: white; background: var(--dark); min-height: 100vh; display: grid; grid-template-columns: 260px 1fr; }
+    body::before { content: ""; position: fixed; inset: 0; background: radial-gradient(circle at 50% 50%, rgba(124, 77, 255, 0.08), transparent), linear-gradient(rgba(124, 77, 255, 0.03) 1px, transparent 1px); background-size: 100% 100%, 40px 40px; z-index: -1; }
+    
+    .sidebar { background: var(--pane); border-right: 1px solid var(--border); padding: 40px 20px; position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; backdrop-filter: blur(10px); }
+    .logo { font-family: 'Orbitron'; font-size: 2.2rem; color: white; text-align: center; margin-bottom: 2px; background: linear-gradient(120deg, #fff, var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .lema { text-align: center; font-size: 0.65rem; color: var(--primary); font-weight: 800; letter-spacing: 1px; margin-bottom: 5px; text-shadow: 0 0 5px rgba(124, 77, 255, 0.5); }
+    .subtitle { text-align: center; color: var(--secondary); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .contacto-box { text-align: center; font-size: 0.75rem; color: #cbd5e1; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 6px; border: 1px solid var(--border); margin-bottom: 25px; }
+    .contacto-box a { color: var(--secondary); font-weight: bold; display: block; margin-top: 5px; text-decoration: none; font-size: 0.9rem; transition: 0.3s;}
+    .contacto-box a:hover { color: white; text-shadow: 0 0 8px var(--secondary); }
+    
+    .sidebar-profile { display: none; background: rgba(0, 229, 255, 0.05); border: 1px solid var(--secondary); padding: 15px; border-radius: 8px; margin-bottom: 25px; text-align: center; box-shadow: 0 0 15px rgba(0, 229, 255, 0.1); }
+    .sidebar-profile p { margin: 0; font-size: 0.85rem; color: #cbd5e1; }
+    .sidebar-profile .prof-name { font-family: 'Orbitron'; color: var(--secondary); font-size: 0.95rem; font-weight: bold; margin-top: 5px; }
+    .btn-logout { background: transparent; border: 1px solid rgba(255,50,50,0.5); color: #ff6b6b; font-size: 0.7rem; padding: 5px 10px; border-radius: 4px; margin-top: 10px; cursor: pointer; transition: 0.3s; }
+    .btn-logout:hover { background: rgba(255,50,50,0.1); }
+
+    .nav-link { display: block; color: #94a3b8; padding: 12px 15px; text-decoration: none; border-radius: 8px; margin-bottom: 5px; transition: 0.3s; font-weight: 600; border: 1px solid transparent; }
+    .nav-link:hover, .nav-link.active { background: rgba(124, 77, 255, 0.1); color: var(--secondary); border-color: var(--border); }
+    
+    .content { padding: 40px; overflow-y: auto; }
+    .header-title { font-family: 'Orbitron'; font-size: 1.8rem; margin-bottom: 10px; }
+    .header-desc { color: #94a3b8; margin-bottom: 30px; font-size: 0.95rem; line-height: 1.5; }
+
+    .glass-card { background: var(--glass); backdrop-filter: blur(15px); border: 1px solid var(--border); border-radius: 16px; padding: 30px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    .section-title { font-family: 'Orbitron'; color: var(--secondary); font-size: 1.1rem; margin-bottom: 15px; padding-bottom: 5px; border-bottom: 1px solid var(--border); margin-top: 10px; }
+    
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
+    .full-width { grid-column: 1 / -1; }
+    
+    label { display: block; font-size: 0.75rem; color: #cbd5e1; text-transform: uppercase; margin-bottom: 6px; font-weight: bold; }
+    select, input[type="text"], input[type="email"], input[type="password"], textarea { width: 100%; padding: 10px 12px; background: rgba(0,0,0,0.4); border: 1px solid var(--border); color: white; border-radius: 8px; font-family: 'Exo 2'; transition: 0.3s; }
+    select:focus, input:focus, textarea:focus { border-color: var(--secondary); outline: none; box-shadow: 0 0 8px rgba(0, 229, 255, 0.2); }
+    
+    .tag-group { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag-group label { background: rgba(255,255,255,0.05); border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; cursor: pointer; text-transform: none; font-size: 0.85rem; font-weight: normal; transition: 0.2s; display: flex; align-items: center; }
+    .tag-group label:hover { background: rgba(124, 77, 255, 0.2); }
+    .tag-group input { margin-right: 8px; accent-color: var(--primary); }
+
+    .action-buttons { display: flex; gap: 15px; margin-top: 25px; }
+    .btn-main { background: linear-gradient(90deg, var(--primary), var(--secondary)); color: #050a18; padding: 15px; border: none; border-radius: 8px; font-family: 'Orbitron'; font-weight: 900; cursor: pointer; text-transform: uppercase; flex: 3; transition: 0.3s; font-size: 1rem; width: 100%; text-align: center;}
+    .btn-main:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(124, 77, 255, 0.4); }
+    .btn-secondary { background: rgba(255,255,255,0.05); color: #cbd5e1; border: 1px solid var(--border); padding: 15px; border-radius: 8px; font-family: 'Orbitron'; font-weight: 600; cursor: pointer; text-transform: uppercase; flex: 1; transition: 0.3s; font-size: 0.9rem; }
+    .btn-secondary:hover { background: rgba(255,50,50,0.1); color: #ff6b6b; border-color: #ff6b6b; }
+    .btn-mp { background: #009ee3; color: white; border: none; text-decoration: none; padding: 12px; border-radius: 8px; font-family: 'Orbitron'; font-weight: bold; text-align: center; display: block; width: 100%; margin-top: 10px; transition: 0.3s; }
+    .btn-mp:hover { background: #0077b5; box-shadow: 0 5px 15px rgba(0, 158, 227, 0.4); transform: translateY(-2px); }
+
+    #output-section { display: none; margin-top: 25px; background: rgba(0,0,0,0.4); padding: 20px; border-radius: 12px; border: 1px dashed var(--secondary); box-shadow: inset 0 0 15px rgba(0,0,0,0.5); }
+    .btn-copy { background: transparent; border: 1px solid var(--secondary); color: var(--secondary); padding: 8px 15px; border-radius: 5px; cursor: pointer; float: right; font-family: 'Exo 2'; font-weight: bold; transition: 0.3s; }
+    .btn-copy:hover { background: var(--secondary); color: var(--dark); }
+
+    .auth-gate { background: var(--glass); border: 1px solid var(--primary); border-radius: 16px; padding: 40px; text-align: center; margin-top: 40px; box-shadow: 0 0 20px rgba(124, 77, 255, 0.15); max-width: 500px; margin-left: auto; margin-right: auto; }
+    .subscription-box { margin-top: 30px; padding-top: 25px; border-top: 1px solid var(--border); }
+    
+    .psycho-banner { display: none; background: linear-gradient(135deg, rgba(124,77,255,0.1), rgba(0,229,255,0.1)); border-left: 4px solid var(--secondary); border-radius: 8px; padding: 20px; margin-bottom: 25px; text-align: left; }
+    .psycho-banner h4 { font-family: 'Orbitron'; color: var(--secondary); margin-bottom: 8px; font-size: 1.1rem; }
+    .psycho-banner p { color: #e2e8f0; font-size: 0.95rem; line-height: 1.5; margin-bottom: 10px; }
+    .security-note { font-size: 0.75rem; color: #94a3b8; display: flex; align-items: center; gap: 5px; }
+
+    .premium-content { display: none; margin-top: 20px; }
+
+    .btn-feedback {
+      position: fixed;
+      bottom: 30px;
+      left: 30px; 
+      background: linear-gradient(135deg, #ff007a, #7c4dff);
+      color: white;
+      padding: 15px 25px;
+      border-radius: 50px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.9rem;
+      font-weight: bold;
+      text-decoration: none;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+      border: 2px solid rgba(255,255,255,0.2);
+      transition: all 0.3s ease;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .btn-feedback:hover {
+      transform: translateY(-5px) scale(1.05);
+      box-shadow: 0 15px 25px rgba(124, 77, 255, 0.6);
+      border-color: #00e5ff;
+    }
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="logo">INNOA</div>
+    <div class="lema">MENTES INQUIETAS<br>DOCENTES AUDACES</div>
+    <div class="subtitle">Ecosistema Educativo</div>
+    
+    <div class="contacto-box">
+      ¿Dudas o Soporte? Escribinos:
+      <a href="https://wa.me/5493886865482" target="_blank">📱 +54 9 388 686-5482</a>
+    </div>
+    
+    <div id="sidebar-profile" class="sidebar-profile">
+      <p>Licencia Activa</p>
+      <div id="sidebar-name" class="prof-name">Prof. Usuario</div>
+      <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
+    </div>
+
+    <nav style="margin-top: 10px;">
+      <a href="index.html" class="nav-link active">Arquitecto de Trayectorias</a>
+      <a href="formacion.html" class="nav-link">Formación INNOA</a>
+      <a href="recursos.html" class="nav-link">Recursos Didácticos</a>
+      <a href="aliados.html" class="nav-link">Sponsors / Aliados</a>
+      <a href="somos.html" class="nav-link">Quiénes Somos</a>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <h1 class="header-title">Arquitecto de Trayectorias Pro</h1>
+    <p class="header-desc">Configurá el contexto exacto de tu aula. Esta herramienta de nivel experto estructurará la información utilizando enfoques pedagógicos modernos.</p>
+
+    <div class="glass-card">
+      <h3 class="section-title">1. Contexto Institucional</h3>
+      <div class="form-grid">
+        <div>
+          <label>Provincia / Jurisdicción</label>
+          <select id="f_provincia" onchange="verificarOrientacionJujuy()">
+            <option value="Jujuy">Jujuy</option>
+            <option value="Salta">Salta</option>
+            <option value="Tucumán">Tucumán</option>
+            <option value="CABA">CABA</option>
+            <option value="Buenos Aires">Buenos Aires</option>
+            <option value="Córdoba">Córdoba</option>
+            <option value="Mendoza">Mendoza</option>
+            <option value="Otra">Otra</option>
+          </select>
+        </div>
+        <div>
+          <label>Nivel y Ciclo Educativo</label>
+          <select id="f_nivel" onchange="verificarOrientacionJujuy()">
+            <option value="Nivel Secundario: Ciclo Básico (1° y 2° Año)">Secundario: Ciclo Básico (1° y 2° Año)</option>
+            <option value="Nivel Secundario: Ciclo Orientado (3° a 6° Año)">Secundario: Ciclo Orientado (3° a 6° Año)</option>
+            <option value="Nivel Inicial">Nivel Inicial</option>
+            <option value="Nivel Primario">Nivel Primario</option>
+            <option value="Nivel Superior / Universitario">Nivel Superior / Universitario</option>
+          </select>
+        </div>
+        
+        <div id="box-orientacion" style="display:none;">
+          <label>Orientación Curricular</label>
+          <select id="f_orientacion">
+            <option value="Ciencias Sociales y Humanidades">Ciencias Sociales y Humanidades</option>
+            <option value="Ciencias Naturales">Ciencias Naturales</option>
+            <option value="Economía y Administración">Economía y Administración</option>
+            <option value="Informática">Informática</option>
+            <option value="Agro y Ambiente">Agro y Ambiente</option>
+            <option value="Turismo">Turismo</option>
+            <option value="Comunicación">Comunicación</option>
+            <option value="Lenguas">Lenguas</option>
+            <option value="Educación Física">Educación Física</option>
+            <option value="Arte">Arte</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Tipo de Institución</label>
+          <select id="f_tipo_escuela">
+            <option>Bachiller / Orientada Común</option>
+            <option>Escuela de Educación Técnica (EET)</option>
+            <option>Escuela Agrotécnica</option>
+            <option>Escuela de Arte / Especializada</option>
+            <option>Colegio Privado / Parroquial</option>
+            <option>Escuela de Innovación</option>
+          </select>
+        </div>
+        <div>
+          <label>Ámbito</label>
+          <select id="f_ambito"><option>Urbano</option><option>Rural</option><option>Contexto de Encierro</option><option>Hospitalario</option></select>
+        </div>
+      </div>
+
+      <h3 class="section-title">2. Estructura Curricular</h3>
+      <div class="form-grid">
+        <div><label>Año / Curso Exacto</label><input type="text" id="f_curso" placeholder="Ej: 3er Año, 5to Grado..."></div>
+        <div><label>Materia / Espacio Curricular</label><input type="text" id="f_materia" placeholder="Ej: Matemática, Taller de Electrónica..."></div>
+        <div><label>Tipo de Planificación</label><select id="f_tipo_plan"><option>Clase Diaria (Suelta)</option><option>Secuencia Didáctica de Trayectoria</option><option>Proyecto ABP (Aprendizaje Basado en Proyectos)</option><option>Unidad Curricular Integrada</option></select></div>
+        <div class="full-width"><label>Tema Específico / Problema a Resolver</label><input type="text" id="f_tema" placeholder="Ej: Ley de Ohm, Revolución Francesa, Cambio Climático..."></div>
+      </div>
+
+      <h3 class="section-title">3. Enfoque Didáctico e Inclusión</h3>
+      <div class="form-grid">
+        <div>
+          <label>Formato de Clase</label>
+          <select id="f_formato">
+            <option>Aprendizaje Basado en Proyectos (ABP)</option>
+            <option>Taller de Producción</option>
+            <option>Seminario de Investigación / Debate</option>
+            <option>Aula Invertida (Flipped Classroom)</option>
+            <option>Laboratorio / Trabajo de Campo</option>
+            <option>Secuencia Teórico-Práctica Situada</option>
+          </select>
+        </div>
+        <div>
+          <label>Instrumento de Evaluación</label>
+          <select id="f_evaluacion">
+            <option>Formativa - Rúbrica Analítica de Proceso</option>
+            <option>Formativa - Rúbrica Holística (Global)</option>
+            <option>Formativa - Lista de Cotejo (Checklist)</option>
+            <option>Formativa - Registro Anecdótico / Bitácora</option>
+            <option>Formativa - Portfolio de Evidencias</option>
+            <option>Sumativa (Examen / Calificación final)</option>
+          </select>
+        </div>
+        
+        <div class="full-width">
+          <label>Normativas Transversales (Marcá las requeridas)</label>
+          <div class="tag-group" id="f_leyes">
+            <label><input type="checkbox" value="Ley Nac. Educación 26.206" checked> Ley 26.206</label>
+            <label><input type="checkbox" value="Ley ESI 26.150"> ESI (Ley 26.150)</label>
+            <label><input type="checkbox" value="Ley Educación Ambiental Integral"> Ambiental (Ley 27.621)</label>
+            <label><input type="checkbox" value="Diseño Curricular Jurisdiccional" checked> Diseño Curricular Provincial</label>
+          </div>
+        </div>
+
+        <div class="full-width">
+          <label>Inclusión / DUA (Res. CFE 311/16)</label>
+          <div class="tag-group" id="f_dua">
+            <label><input type="checkbox" value="TDAH (Déficit de Atención - Ajuste de pausas y visuales)"> TDAH</label>
+            <label><input type="checkbox" value="TEA (Espectro Autista - Anticipación y apoyos claros)"> TEA</label>
+            <label><input type="checkbox" value="Dislexia (Ajuste de tipografía y lectura accesible)"> Dislexia</label>
+            <label><input type="checkbox" value="Discapacidad Visual / Auditiva"> Discapacidad Visual/Auditiva</label>
+            <label><input type="checkbox" value="Estudiantes de Altas Capacidades"> Altas Capacidades</label>
+            <label><input type="checkbox" value="Sin adaptaciones específicas" checked> Aula Estándar</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <button class="btn-main" onclick="generarSuperPrompt()">Construir Prompt Maestro</button>
+        <button class="btn-secondary" onclick="limpiarFormulario()">🗑️ Limpiar</button>
+      </div>
+
+      <div id="output-section">
+        <button class="btn-copy" onclick="copiarPrompt()">📋 COPIAR TEXTO</button>
+        <label>Prompt Generado (Copiá este texto y pegalo en el chat de tu Agente INNOA)</label>
+        <textarea id="promptText" rows="12" readonly style="margin-top:10px; background:rgba(0,0,0,0.6); color:var(--secondary); line-height:1.5; font-size: 0.9rem; border:1px solid rgba(0, 229, 255, 0.3);"></textarea>
+      </div>
+    </div>
+
+    <div id="auth-gate" class="auth-gate">
+      <h2 style="font-family:'Orbitron'; margin-bottom:10px;">🔐 Vincular Licencia</h2>
+      <input type="text" id="user-name" placeholder="Tu Nombre y Apellido" style="margin-bottom: 10px;">
+      <input type="email" id="user-email" placeholder="Correo Electrónico Institucional" style="margin-bottom: 15px;">
+      <select id="user-rol" style="margin-bottom: 10px; color: #aaa;"><option value="Docente">Docente</option><option value="Directivo">Directivo</option></select>
+      <select id="user-provincia-reg" style="margin-bottom: 10px; color: #aaa;"><option value="Jujuy">Jujuy</option><option value="Otra">Otra</option></select>
+      <select id="user-nivel-reg" style="margin-bottom: 15px; color: #aaa;"><option value="Secundario">Secundario</option></select>
+      <input type="password" id="access-key" placeholder="Código de Acceso" style="margin-bottom: 25px;">
+      <button class="btn-main" onclick="registrarUsuario()">ACTIVAR MI ENTORNO PRIVADO</button>
+      <div class="subscription-box">
+        <a href="https://mpago.la/151JrnQ" target="_blank" class="btn-mp">💳 SUSCRIBIRME (MercadoPago)</a>
+      </div>
+    </div>
+
+    <div id="premium-container" class="premium-content">
+      <div id="psycho-banner" class="psycho-banner">
+        <h4>Bienvenido/a, <span id="banner-name">Profesor</span></h4>
+        <p>Tu entorno de Inteligencia Artificial privado ya está calibrado.</p>
+      </div>
+    </div>
+  </main>
+
+  <a href="https://forms.gle/fQhAoKrZ8tRMiqWY8" target="_blank" class="btn-feedback">⭐ ¡Ayudanos a mejorar!</a>
+
+  <script>
+    const CODIGO_ACTUAL = "PromoInnoa";
+    const GOOGLE_APP_URL = "https://script.google.com/macros/s/AKfycbzkNo9nHnNqbbafTGGuqwD5CyYdotTP4vRbk7841wZisHumPoq7ZMLvO9kq7qyVr7yYMg/exec"; 
+
+    // LOGICA DE CARGA DINÁMICA DEL BOT (SIN BLOQUEOS CSP)
+    function cargarBotpress() {
+      if (document.getElementById('botpress-inject')) return;
+      const script1 = document.createElement('script');
+      script1.id = 'botpress-inject';
+      script1.src = "https://cdn.botpress.cloud/webchat/v3.6/inject.js";
+      script1.onload = function() {
+        const script2 = document.createElement('script');
+        script2.src = "https://files.bpcontent.cloud/2026/04/27/02/20260427020806-RFTEJTYM.js";
+        script2.defer = true; 
+        document.body.appendChild(script2);
+        console.log("Asistente cargado");
+      };
+      document.body.appendChild(script1);
+    }
+
+    function verificarOrientacionJujuy() {
+      const prov = document.getElementById("f_provincia").value;
+      const nivel = document.getElementById("f_nivel").value;
+      document.getElementById("box-orientacion").style.display = (prov === "Jujuy" && nivel.includes("Ciclo Orientado")) ? "block" : "none";
+    }
+
+    function registrarUsuario() {
+      const nombre = document.getElementById("user-name").value.trim();
+      const clave = document.getElementById("access-key").value.trim();
+      if (clave === CODIGO_ACTUAL) {
+        localStorage.setItem("innoa_user_name", nombre);
+        guardarEnGoogleSheet(nombre, document.getElementById("user-email").value, document.getElementById("user-rol").value, document.getElementById("user-provincia-reg").value, document.getElementById("user-nivel-reg").value);
+        activarEntornoPremium(nombre);
+      } else { alert("Código incorrecto."); }
+    }
+
+    function guardarEnGoogleSheet(nombre, email, rol, prov, nivel) {
+        const url = `${GOOGLE_APP_URL}?nombre=${encodeURIComponent(nombre)}&email=${encodeURIComponent(email)}&rol=${encodeURIComponent(rol)}&provincia=${encodeURIComponent(prov)}&nivel=${encodeURIComponent(nivel)}&fecha=${new Date().toLocaleString()}`;
+        new Image().src = url;
+    }
+
+    function activarEntornoPremium(nombre) {
+      document.getElementById("auth-gate").style.display = "none";
+      document.getElementById("premium-container").style.display = "block";
+      document.getElementById("psycho-banner").style.display = "block";
+      document.getElementById("sidebar-profile").style.display = "block";
+      document.getElementById("banner-name").innerText = "Prof. " + nombre;
+      document.getElementById("sidebar-name").innerText = "Prof. " + nombre;
+      cargarBotpress(); 
+    }
+
+    function generarSuperPrompt() {
+      const prompt = `Actúa como el Asistente INNOA. Contexto: ${document.getElementById('f_provincia').value}, ${document.getElementById('f_materia').value}. Tema: ${document.getElementById('f_tema').value}. Redacta una propuesta según la normativa vigente...`;
+      document.getElementById('promptText').value = prompt;
+      document.getElementById('output-section').style.display = 'block';
+    }
+
+    function copiarPrompt() {
+      document.getElementById('promptText').select();
+      document.execCommand('copy');
+      alert("¡Prompt copiado! Pegalo en el chat de la esquina inferior derecha.");
+    }
+
+    function limpiarFormulario() { location.reload(); }
+    
+    function cerrarSesion() {
+      localStorage.removeItem("innoa_user_name");
+      location.reload();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const nombreGuardado = localStorage.getItem("innoa_user_name");
+      if (nombreGuardado) activarEntornoPremium(nombreGuardado);
+    });
+  </script>
+</body>
+</html>
